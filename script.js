@@ -7,8 +7,8 @@ const gameOverModal = document.querySelector(".game-over");
 const pauseGameModal = document.querySelector(".pause-game");
 const blockHeight = 50;
 const blockWidth = 50;
-// const gameOver = new Audio("gameOver.mp3");
-// const foodConsumed = new Audio("foodConsumed.mp3");
+const gameOver = new Audio("gameOver.mp3");
+const foodConsumed = new Audio("foodConsumed.mp3");
 let speed = 400;
 let scoreDisplay = document.querySelectorAll(".score");
 let score = 0;
@@ -81,7 +81,7 @@ function drawSnake() {
   // Walls Mode ON
   if (wallsEnabled) {
     if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= cols) {
-      // gameOver.play();
+      gameOver.play();
       gameOverModal.style.display = "flex";
       modal.style.display = "flex";
       clearInterval(intervalId);
@@ -98,15 +98,15 @@ function drawSnake() {
   }
 
   if (snake.some((segment) => segment.x === head.x && segment.y === head.y)) {
-    // gameOver.play();
+    gameOver.play();
     gameOverModal.style.display = "flex";
     modal.style.display = "flex";
     clearInterval(intervalId);
   }
 
   if (head.x === food.x && head.y === food.y) {
-    // foodConsumed.currentTime = 0; // reset
-    // foodConsumed.play();
+    foodConsumed.currentTime = 0; // reset
+    foodConsumed.play();
     console.log("Food");
     blocks[`${food.x}-${food.y}`].classList.remove("food");
     food = getRandomFoodPosition(snake, rows, cols);
