@@ -18,6 +18,7 @@ let time = `00:00`;
 const timerElement = document.querySelector("#timer");
 highScoreElement.innerText = `${highScore}`;
 let wallsEnabled = true; // toggle walls on/off
+let soundEnabled = true; // toggle sound on/off
 const blocks = [];
 const snake = [
   {
@@ -31,11 +32,17 @@ let intervalId = null;
 let timerIntervalId = null;
 let pause = false;
 const wallsBtn = document.querySelector('.btn-walls');
+const soundBtn = document.querySelector('.btn-sound');
 
 wallsBtn.addEventListener('click', () => {
     wallsEnabled = !wallsEnabled;
     wallsBtn.innerText = `Walls: ${wallsEnabled ? "ON" : "OFF"}`;
     board.style.border = wallsEnabled ? "2px solid black" : "2px dashed gray";
+});
+
+soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.innerText = `${soundEnabled ? "🔊" : "🔇"} Sound: ${soundEnabled ? "ON" : "OFF"}`;
 });
 
 const cols = Math.floor(board.clientWidth / blockWidth);
@@ -81,7 +88,7 @@ function drawSnake() {
   // Walls Mode ON
   if (wallsEnabled) {
     if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= cols) {
-      gameOver.play();
+      if (soundEnabled) gameOver.play();
       gameOverModal.style.display = "flex";
       modal.style.display = "flex";
       clearInterval(intervalId);
@@ -98,15 +105,17 @@ function drawSnake() {
   }
 
   if (snake.some((segment) => segment.x === head.x && segment.y === head.y)) {
-    gameOver.play();
+    if (soundEnabled) gameOver.play();
     gameOverModal.style.display = "flex";
     modal.style.display = "flex";
     clearInterval(intervalId);
   }
 
   if (head.x === food.x && head.y === food.y) {
-    foodConsumed.currentTime = 0; // reset
-    foodConsumed.play();
+    if (soundEnabled) {
+      foodConsumed.currentTime = 0; // reset
+      foodConsumed.play();
+    }
     console.log("Food");
     blocks[`${food.x}-${food.y}`].classList.remove("food");
     food = getRandomFoodPosition(snake, rows, cols);
