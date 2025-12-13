@@ -33,6 +33,20 @@ let timerIntervalId = null;
 let pause = false;
 const wallsBtn = document.querySelector('.btn-walls');
 const soundBtn = document.querySelector('.btn-sound');
+const themeSelector = document.querySelector('.theme-selector');
+
+// initialize theme from localStorage
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+if (themeSelector) themeSelector.value = savedTheme;
+
+if (themeSelector) {
+  themeSelector.addEventListener('change', (e) => {
+    const t = e.target.value || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('theme', t);
+  });
+}
 
 wallsBtn.addEventListener('click', () => {
     wallsEnabled = !wallsEnabled;
