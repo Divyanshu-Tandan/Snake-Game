@@ -140,12 +140,20 @@ function drawSnake() {
   for (const segment of snake) {
     const snakeBlock = blocks[`${segment.x}-${segment.y}`];
     snakeBlock.classList.remove("snake");
+    snakeBlock.classList.remove("head");
   }
   snake.unshift(head);
   snake.pop();
-  for (const segment of snake) {
+  for (let i = 0; i < snake.length; i++) {
+    const segment = snake[i];
     const snakeBlock = blocks[`${segment.x}-${segment.y}`];
-    snakeBlock.classList.add("snake");
+    if (i === 0) {
+      // Head - darker green
+      snakeBlock.classList.add("head");
+    } else {
+      // Body - bright green
+      snakeBlock.classList.add("snake");
+    }
   }
 }
 
@@ -201,6 +209,7 @@ resetBtn.addEventListener("click", () => {
   for (const segment of snake) {
     const snakeBlock = blocks[`${segment.x}-${segment.y}`];
     snakeBlock.classList.remove("snake");
+    snakeBlock.classList.remove("head");
   }
   blocks[`${food.x}-${food.y}`].classList.remove("food");
   food = {
