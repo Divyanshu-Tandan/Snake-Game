@@ -5,21 +5,48 @@ const modal = document.querySelector(".modal");
 const startGameModal = document.querySelector(".start-game");
 const gameOverModal = document.querySelector(".game-over");
 const pauseGameModal = document.querySelector(".pause-game");
-const blockHeight = 50;
-const blockWidth = 50;
+
+const settingsPanel = document.querySelector(".settings-panel");
+const settingsOpenButtons = document.querySelectorAll(".btn-open-settings");
+const settingsCloseButton = document.querySelector(".settings-close");
+const settingsCloseBottomButton = document.querySelector(".settings-close-btn");
+
+settingsOpenButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    settingsPanel.style.display = "block";
+  });
+});
+
+settingsCloseButton.addEventListener("click", () => {
+  settingsPanel.style.display = "none";
+});
+
+settingsCloseBottomButton.addEventListener("click", () => {
+  settingsPanel.style.display = "none";
+});
+
 const gameOver = new Audio("gameOver.mp3");
 const foodConsumed = new Audio("foodConsumed.mp3");
+
 let speed = 400;
 let scoreDisplay = document.querySelectorAll(".score");
 let score = 0;
 let highScore = localStorage.getItem("highScore") || 0;
 const highScoreElement = document.querySelector("#high-score");
+
 let time = `00:00`;
 const timerElement = document.querySelector("#timer");
+
 highScoreElement.innerText = `${highScore}`;
+
 let wallsEnabled = true; // toggle walls on/off
 let soundEnabled = true; // toggle sound on/off
+
 const blocks = [];
+
+const rows = 20;
+const cols = 20;
+
 const snake = [
   {
     x: 1,
@@ -28,39 +55,70 @@ const snake = [
 ];
 
 let direction = "right";
+let nextDirection = "right";
 let intervalId = null;
 let timerIntervalId = null;
 let pause = false;
-const wallsBtn = document.querySelector('.btn-walls');
-const soundBtn = document.querySelector('.btn-sound');
-const themeSelector = document.querySelector('.theme-selector');
+const wallsBtn = document.querySelector(".btn-walls");
+const soundBtn = document.querySelector(".btn-sound");
+const themeSelector = document.querySelector(".theme-selector");
+const snakeColorButtons = document.querySelectorAll(".snake-color");
 
 // initialize theme from localStorage
-const savedTheme = localStorage.getItem('theme') || 'dark';
-document.documentElement.setAttribute('data-theme', savedTheme);
+const savedTheme = localStorage.getItem("theme") || "dark";
+document.documentElement.setAttribute("data-theme", savedTheme);
 if (themeSelector) themeSelector.value = savedTheme;
 
 if (themeSelector) {
-  themeSelector.addEventListener('change', (e) => {
-    const t = e.target.value || 'dark';
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('theme', t);
+  themeSelector.addEventListener("change", (e) => {
+    const t = e.target.value || "dark";
+    document.documentElement.setAttribute("data-theme", t);
+    localStorage.setItem("theme", t);
   });
 }
 
-wallsBtn.addEventListener('click', () => {
-    wallsEnabled = !wallsEnabled;
-    wallsBtn.innerText = `Walls: ${wallsEnabled ? "ON" : "OFF"}`;
-    board.style.border = wallsEnabled ? "2px solid black" : "2px dashed gray";
+const savedSnakeColor =
+  localStorage.getItem("snakeColor") || "green";
+
+document.documentElement.setAttribute(
+  "data-snake-color",
+  savedSnakeColor
+);
+
+snakeColorButtons.forEach((button) => {
+  button.classList.toggle(
+    "active",
+    button.dataset.color === savedSnakeColor
+  );
 });
 
-soundBtn.addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
-    soundBtn.innerText = `${soundEnabled ? "🔊" : "🔇"} Sound: ${soundEnabled ? "ON" : "OFF"}`;
+snakeColorButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const selectedColor = button.dataset.color;
+
+    document.documentElement.setAttribute(
+      "data-snake-color",
+      selectedColor
+    );
+
+    localStorage.setItem("snakeColor", selectedColor);
+
+    snakeColorButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn === button);
+    });
+  });
 });
 
-const cols = Math.floor(board.clientWidth / blockWidth);
-const rows = Math.floor(board.clientHeight / blockHeight);
+wallsBtn.addEventListener("click", () => {
+  wallsEnabled = !wallsEnabled;
+  wallsBtn.innerText = `Walls: ${wallsEnabled ? "ON" : "OFF"}`;
+  board.style.border = wallsEnabled ? "2px solid black" : "2px dashed gray";
+});
+
+soundBtn.addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  soundBtn.innerText = `${soundEnabled ? "🔊" : "🔇"} Sound: ${soundEnabled ? "ON" : "OFF"}`;
+});
 
 function getRandomFoodPosition(snake, rows, cols) {
   const occupied = new Set(snake.map((s) => `${s.x}-${s.y}`));
@@ -72,6 +130,10 @@ function getRandomFoodPosition(snake, rows, cols) {
         freeCells.push({ x, y });
       }
     }
+  }
+
+  if (freeCells.length === 0) {
+    return null;
   }
 
   return freeCells[Math.floor(Math.random() * freeCells.length)];
@@ -88,9 +150,81 @@ for (let row = 0; row < rows; row++) {
   }
 }
 
+function updateSpeed() {
+  if (score >= 600) {
+    speed = 80;
+  } else if (score >= 400) {
+    speed = 100;
+  } else if (score >= 210) {
+    speed = 130;
+  } else if (score >= 130) {
+    speed = 150;
+  } else if (score >= 60) {
+    speed = 200;
+  } else if (score >= 10) {
+    speed = 350;
+  } else {
+    speed = 400;
+  }
+}
+
+function hexToRgb(hex) {
+  hex = hex.replace("#", "");
+
+  return {
+    r: parseInt(hex.substring(0, 2), 16),
+    g: parseInt(hex.substring(2, 4), 16),
+    b: parseInt(hex.substring(4, 6), 16),
+  };
+}
+
+function rgbToHex(r, g, b) {
+  return (
+    "#" +
+    [r, g, b]
+      .map((value) => Math.round(value).toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
+
+function getSnakeSegmentColor(index, length) {
+  const styles = getComputedStyle(document.documentElement);
+
+  const light = styles
+    .getPropertyValue("--snake-light")
+    .trim();
+
+  const dark = styles
+    .getPropertyValue("--snake-dark")
+    .trim();
+
+  const lightRgb = hexToRgb(light);
+  const darkRgb = hexToRgb(dark);
+
+  const progress = length <= 1 ? 0 : index / (length - 1);
+
+  const r =
+    lightRgb.r +
+    (darkRgb.r - lightRgb.r) * progress;
+
+  const g =
+    lightRgb.g +
+    (darkRgb.g - lightRgb.g) * progress;
+
+  const b =
+    lightRgb.b +
+    (darkRgb.b - lightRgb.b) * progress;
+
+  return rgbToHex(r, g, b);
+}
+
 function drawSnake() {
   if (pause) return;
-  blocks[`${food.x}-${food.y}`].classList.add("food");
+  direction = nextDirection;
+  let ateFood = false;
+  if (food) {
+    blocks[`${food.x}-${food.y}`].classList.add("food");
+  }
   let head = { x: snake[0].x, y: snake[0].y };
 
   // Move head one step depending on direction
@@ -106,6 +240,7 @@ function drawSnake() {
       gameOverModal.style.display = "flex";
       modal.style.display = "flex";
       clearInterval(intervalId);
+      clearInterval(timerIntervalId);
       return;
     }
   }
@@ -118,82 +253,92 @@ function drawSnake() {
     else if (head.y >= cols) head.y = 0;
   }
 
-  if (snake.some((segment) => segment.x === head.x && segment.y === head.y)) {
+  ateFood = food && head.x === food.x && head.y === food.y;
+  const bodyToCheck = ateFood ? snake : snake.slice(0, -1);
+
+  if (bodyToCheck.some((segment) => segment.x === head.x && segment.y === head.y)) {
     if (soundEnabled) gameOver.play();
     gameOverModal.style.display = "flex";
     modal.style.display = "flex";
     clearInterval(intervalId);
+    clearInterval(timerIntervalId);
+    return;
   }
 
-  if (head.x === food.x && head.y === food.y) {
+  if (ateFood) {
     if (soundEnabled) {
       foodConsumed.currentTime = 0; // reset
       foodConsumed.play();
     }
-    console.log("Food");
-    blocks[`${food.x}-${food.y}`].classList.remove("food");
-    food = getRandomFoodPosition(snake, rows, cols);
-    score += 10;
-    if (score <= 50 && score >= 10) {
-      speed = 350;
-    } else if (score >= 60 && score <= 120) {
-      speed = 200;
-    } else if (score >= 130 && score <= 200) {
-      speed = 150;
-    } else if (score >= 210 && score <= 350) {
-      speed = 130;
-    } else if (score >= 400 && score < 600) {
-      speed = 100;
-    } else if (score >= 600) {
-      speed = 80;
+    if (food) {
+      blocks[`${food.x}-${food.y}`].classList.remove("food");
     }
+    score += 10;
+    updateSpeed();
     if (score >= highScore) {
       highScore = score;
       localStorage.setItem("highScore", highScore.toString());
       highScoreElement.innerText = `${highScore}`;
     }
     scoreDisplay.forEach((node) => (node.innerText = `${score}`));
-    snake.unshift(head);
 
     // --- RESTART INTERVAL AFTER SPEED CHANGE ---
-    clearInterval(intervalId);
-    intervalId = setInterval(drawSnake, speed);
+    startGameLoop();
   }
 
   for (const segment of snake) {
     const snakeBlock = blocks[`${segment.x}-${segment.y}`];
+
     snakeBlock.classList.remove("snake");
     snakeBlock.classList.remove("head");
+
+    snakeBlock.style.removeProperty("--segment-color");
   }
   snake.unshift(head);
-  snake.pop();
+
+  if (!ateFood) {
+    snake.pop();
+  }
+  if (ateFood) {
+    food = getRandomFoodPosition(snake, rows, cols);
+  }
   for (let i = 0; i < snake.length; i++) {
     const segment = snake[i];
-    const snakeBlock = blocks[`${segment.x}-${segment.y}`];
+
+    const snakeBlock =
+      blocks[`${segment.x}-${segment.y}`];
+
+    const segmentColor =
+      getSnakeSegmentColor(i, snake.length);
+
+    snakeBlock.style.setProperty(
+      "--segment-color",
+      segmentColor
+    );
+
     if (i === 0) {
-      // Head - darker green
       snakeBlock.classList.add("head");
     } else {
-      // Body - bright green
       snakeBlock.classList.add("snake");
     }
   }
 }
 
 addEventListener("keydown", (event) => {
-  if (event.key == "ArrowLeft" && direction != "right") {
-    direction = "left";
-  } else if (event.key == "ArrowRight" && direction != "left") {
-    direction = "right";
-  } else if (event.key == "ArrowUp" && direction != "down") {
-    direction = "up";
-  } else if (event.key == "ArrowDown" && direction != "up") {
-    direction = "down";
+  if (event.key === "ArrowLeft" && nextDirection !== "right") {
+    nextDirection = "left";
+  } else if (event.key === "ArrowRight" && nextDirection !== "left") {
+    nextDirection = "right";
+  } else if (event.key === "ArrowUp" && nextDirection !== "down") {
+    nextDirection = "up";
+  } else if (event.key === "ArrowDown" && nextDirection !== "up") {
+    nextDirection = "down";
   } else if (
     event.key === " " &&
     time != `00:00` &&
     gameOverModal.style.display != "flex"
   ) {
+    event.preventDefault();
     if (!pause) {
       pause = true;
       pauseGameModal.style.display = "flex";
@@ -207,49 +352,79 @@ addEventListener("keydown", (event) => {
   }
 });
 
-startBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-  startGameModal.style.display = "none";
+function startTimer() {
+  clearInterval(timerIntervalId);
+
   timerIntervalId = setInterval(() => {
     if (pause) return;
+
     let [mins, secs] = time.split(":").map(Number);
+
     secs += 1;
-    if (secs === 59) {
+
+    if (secs === 60) {
       mins += 1;
       secs = 0;
     }
+
     mins = mins < 10 ? `0${mins}` : `${mins}`;
     secs = secs < 10 ? `0${secs}` : `${secs}`;
+
     time = `${mins}:${secs}`;
-    timerElement.innerText = `${time}`;
+    timerElement.innerText = time;
   }, 1000);
-  intervalId = setInterval(() => {
-    drawSnake();
-  }, speed);
+}
+
+function startGameLoop() {
+  clearInterval(intervalId);
+
+  intervalId = setInterval(drawSnake, speed);
+}
+
+startBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+  startGameModal.style.display = "none";
+  
+  startTimer();
+  startGameLoop();
 });
 
 resetBtn.addEventListener("click", () => {
+  clearInterval(intervalId);
+  clearInterval(timerIntervalId);
+
   for (const segment of snake) {
     const snakeBlock = blocks[`${segment.x}-${segment.y}`];
     snakeBlock.classList.remove("snake");
     snakeBlock.classList.remove("head");
   }
-  blocks[`${food.x}-${food.y}`].classList.remove("food");
-  food = {
-    x: Math.floor(Math.random() * rows),
-    y: Math.floor(Math.random() * cols),
-  };
+
+  if (food) {
+    blocks[`${food.x}-${food.y}`].classList.remove("food");
+  }
+
   snake.length = 0;
   snake.push({ x: 1, y: 5 });
+  
+  food = getRandomFoodPosition(snake, rows, cols);
+
   direction = "right";
+  nextDirection = "right";
   score = 0;
   speed = 400;
+  pause = false;
+
   scoreDisplay.forEach((node) => (node.innerText = `${score}`));
+
   highScoreElement.innerText = `${localStorage.getItem("highScore")}`;
+  
   time = `00:00`;
+  timerElement.innerText = "00:00";
+
   modal.style.display = "none";
   gameOverModal.style.display = "none";
-  intervalId = setInterval(() => {
-    drawSnake();
-  }, speed);
+
+  startTimer();
+  startGameLoop();
+
 });

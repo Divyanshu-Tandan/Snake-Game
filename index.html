@@ -12,41 +12,130 @@
         <section>
             <div class="infos">
                 <div class="info">
-                    <h3>High Score:
-                        <span id="high-score">0</span>
-                    </h3>
+                    <span class="info-label">High Score</span>
+                    <strong id="high-score">0</strong>
                 </div>
+
                 <div class="info">
-                    <h3>Score:
-                        <span class="score">0</span>
-                    </h3>
+                    <span class="info-label">Score</span>
+                    <strong class="score">0</strong>
                 </div>
+
                 <div class="info">
-                    <h3>Time:
-                        <span id="timer">00:00</span>
-                    </h3>
+                    <span class="info-label">Time</span>
+                    <strong id="timer">00:00</strong>
                 </div>
-                <button class="btn btn-walls">Walls: ON</button>
-                <button class="btn btn-sound">🔊 Sound: ON</button>
-                <select class="theme-selector btn" aria-label="Theme selector">
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                    <option value="neon">Neon</option>
-                </select>
+
+                <div class="nav-actions">
+                    <button class="btn btn-walls">
+                        Walls: ON
+                    </button>
+
+                    <button class="btn btn-sound">
+                        🔊 Sound: ON
+                    </button>
+                </div>
+
             </div>
             <div class="board">
             </div>
         </section>
+        <div class="settings-panel">
+            <div class="settings-header">
+                <div>
+                    <span class="settings-icon">⚙</span>
+                    <h2>Settings</h2>
+                </div>
+
+                <button class="settings-close" aria-label="Close settings">
+                    ×
+                </button>
+            </div>
+
+            <div class="settings-section">
+
+                <h3>Theme</h3>
+
+                <select class="theme-selector" aria-label="Theme selector">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="neon">Neon</option>
+                </select>
+
+            </div>
+
+            <div class="settings-section">
+
+                <h3>Snake Color</h3>
+
+                <div class="snake-colors">
+
+                    <button
+                        class="snake-color active"
+                        data-color="green"
+                        aria-label="Green snake">
+                        <span class="color-preview green"></span>
+                        <span>Green</span>
+                    </button>
+
+                    <button
+                        class="snake-color"
+                        data-color="blue"
+                        aria-label="Blue snake">
+                        <span class="color-preview blue"></span>
+                        <span>Blue</span>
+                    </button>
+
+                    <button
+                        class="snake-color"
+                        data-color="purple"
+                        aria-label="Purple snake">
+                        <span class="color-preview purple"></span>
+                        <span>Purple</span>
+                    </button>
+
+                    <button
+                        class="snake-color"
+                        data-color="orange"
+                        aria-label="Orange snake">
+                        <span class="color-preview orange"></span>
+                        <span>Orange</span>
+                    </button>
+
+                    <button
+                        class="snake-color"
+                        data-color="red"
+                        aria-label="Red snake">
+                        <span class="color-preview red"></span>
+                        <span>Red</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+            <button class="btn settings-close-btn">
+                Close
+            </button>
+
+        </div>
         <div class="modal">
             <div class="start-game">
                 <h3>Welcome to snake game</h3>
                 <button class="btn btn-start">Start Game</button>
+                <button class="btn btn-open-settings">⚙ Settings</button>
             </div>
             <div class="pause-game">
                 <h3>Game Paused!!</h3>
-                <h3>Score:
+
+                <h3>
+                    Score:
                     <span class="score">0</span>
                 </h3>
+
+                <button class="btn btn-open-settings">
+                    ⚙ Settings
+                </button>
             </div>
             <div class="game-over">
                 <h3>Game Over</h3>
@@ -54,6 +143,15 @@
                     <span class="score">0</span>
                 </h3>
                 <button class="btn btn-reset">Play Again</button>
+            </div>
+        </div>
+        <div class="mobile-modal">
+            <div class="mobile-message">
+                <h2>Computer Required</h2>
+                <p>
+                    This game is currently designed for keyboard controls
+                    and can only be played on a computer.
+                </p>
             </div>
         </div>
     </main>
